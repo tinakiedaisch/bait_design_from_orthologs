@@ -480,6 +480,62 @@ You usually aim to design baits for low-copy loci. I our plant family we had sev
   
 </blockquote>
 
+```bash
+##count how many times each sample appear in the genetree
+for pattern in Hergla_H Deeamar_ XSSD_Ama Amtric_A Amtub_Am Ampal_Am Amhypgen WMLW_Ama MJM1807_ MJM2259_ MJM2445_ MJM1665_ MJM2678_ MJM2943_ PDQH_Aer HDSY_Aer NequaSFB Achbid_A Tisp1013 EYRD_Alt OHKC_Alt BWRK_Alt Alph_Alt ZBPY_Alt Quaephe_ Gomele_G Pfatub_P CUTE_Blu Gomcel_G; do
+    for file in *.raxml.tre.mm; do
+        echo -n "$file, "
+        grep -o -E "$pattern" "$file" | wc -l
+    done > "$pattern"_output.csv
+done
+```
+
+  ---
+## 15. Select the best two sequences for bait design
+
+The following python script will select one species from each of the two subfamilies which have the least gaps and copy them in a new file.
+
+```python
+from Bio import SeqIO
+
+def select_sequence_with_fewest_gaps(sequences):
+    selected_sequence = None
+    min_gaps = float('inf')
+
+    for sequence in sequences:
+        gap_count = sequence.seq.count("-")
+        if gap_count < min_gaps:
+            min_gaps = gap_count
+            selected_sequence = sequence
+
+    return selected_sequence
+
+def main(input_file, output_file):
+    records = list(SeqIO.parse(input_file, "fasta"))
+
+    hergla_group = [record for record in records if record.id in ['Hergla_H', 'Deeamar_', 'XSSD_Ama', 'Amtric_A', 'Amtub_Am', 'Ampal_Am', 'Amhypgen', 'WMLW_Ama']]
+    mj_group = [record for record in records if record.id in ['MJM1807_', 'MJM2259_', 'MJM2445_', 'MJM1665_', 'MJM2678_', 'MJM2943_', 'PDQH_Aer', 'HDSY_Aer', 'NequaSFD', 'Achbid_A', 'Tisp1013', 'EYRD_Alt', 'OHKC_Alt', 'BWRK_Alt', 'Alph_Alt', 'ZBPY_Alt', 'Quaephe_', 'Gomele_G', 'Pfatub_P', 'CUTE_Blu', 'Gomcel_G']]
+
+    selected_hergla = select_sequence_with_fewest_gaps(hergla_group)
+    selected_mj = select_sequence_with_fewest_gaps(mj_group)
+
+    if selected_hergla is not None and selected_mj is not None:
+        with open(output_file, 'w') as output_handle:
+            SeqIO.write([selected_hergla, selected_mj], output_handle, 'fasta')
+    else:
+        print(f"Error: Unable to find sequences in {input_file}")
+
+if __name__ == "__main__":
+    import glob
+
+    input_files = glob.glob("modified_modified*.fasta")
+
+    for input_file in input_files:
+        output_file = f"{input_file.split('_')[2]}.selected_sequences.fa"
+        main(input_file, output_file)
+```
+
+
 
 
 
