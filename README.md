@@ -438,7 +438,7 @@ done
 ```
 
 ---
-## 11. Align Exons again with MACSE_OMM
+## 12. Align Exons again with MACSE_OMM
 
 <blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
 
@@ -459,6 +459,26 @@ done
 parallel -j 100 bash ::: *.sh
 ```
 
+---
+## 13. Final filtering and selection of loci
+
+- Filter again for missingness using trimal (see 11.)
+
+### Now load your exons in Geneious Prime for the filtering of
+- Min. length (e.g. 700 bp)
+- Min. sequences (e.g. 10)
+- Min. pairwise identity (e.g. 75%)
+
+  --> Then review your exons maually to make sure they are well aligned
+
+  ---
+## 14. Identify large gene families
+
+<blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
+   
+You usually aim to design baits for low-copy loci. I our plant family we had several whole genome dublication events which is why we cannot find many single copy loci. However loci belonging to large genefamilies should be discarded. Therefore we counted the occurence of our taxa in the homologs (isoform masked) and discard loci with a higher count than six.  
+  
+</blockquote>
 
 
 
