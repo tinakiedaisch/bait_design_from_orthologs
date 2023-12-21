@@ -418,6 +418,38 @@ for file in "$input_directory"*.fna; do
 done
 ```
 
+remove sequences on the list with the following bash script:
+
+```bash
+for fasta_file in *.fna; do
+    trim_file="${fasta_file%.fna}.trimal.txt"
+    output_file="modified_${fasta_file}"
+
+    # Check if the .trimal.txt file is not empty
+    if [ -s "$trim_file" ]; then
+        awk 'NR==FNR {sequencesToRemove[$2]; next} /^>/ {header=$0; sub(/^>/, "", header); if (!(header in sequencesToRemove)) print $0; next} {if (!(header in sequencesToRemove)) print}' "$trim_file" "$fasta_file" > "$output_file"
+        echo "Processed $fasta_file"
+    else
+        # If .trimal.txt is empty, just copy the original .fna file
+        cp "$fasta_file" "$output_file"
+        echo "No modifications for $fasta_file"
+    fi
+done
+```
+
+---
+## 11. Align Exons again with MACSE_OMM
+
+<blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
+
+Mafft did not align the sequences in frame, so if you are experiencing many frameshifts or badly aligned sequences, use `macse_omm`. This can be checked in Geneious Prime using the Translation option. The MACSE_OMM pipeline will align the sequences in respect to their AA translation, remove non-homologous sequence fragments, and trim extremities of the alignment.
+
+</blockquote>
+
+
+
+
+
 
 
 
