@@ -359,7 +359,65 @@ if __name__ == "__main__":
 After the previous step you will get ten thousends of exons but which are probably too short, too uninformative, or contain gappy sequences. Therfor it is good to filter this one out first.
 
 - Filter for length
--Filter for informativness 
+- Filter for informativness (parsimony informative sites) with phykit [PhyKIT GitHub Repository](https://github.com/JLSteenwyk/PhyKIT)
+
+```bash
+#!/bin/bash
+
+# Specify the input and output directories
+input_dir="/path/to/your/input_directory"
+output_dir="/path/to/your/output_directory"
+
+# Create the output directory if it doesn't exist
+mkdir -p "$output_dir"
+
+# Loop through all .fna files in the input directory
+for file in "$input_dir"/*.fna; do
+    # Extract the file name without extension
+    filename=$(basename -- "$file")
+    filename_no_ext="${filename%.fna}"
+
+    # Run phykit command to calculate parsimony informative sites
+    phykit pis "$file" > "$output_dir/${filename_no_ext}_pis.txt"
+
+    echo "Parsimony Informative Sites for $filename calculated and saved to ${filename_no_ext}_pis.txt"
+done
+```
+
+  💡 The output of the script will be displayed as follows:
+col1: number of parsimony informative sites 
+col2: total number of sites 
+col3: percentage of parsimony informative sites
+
+--> with this you can select a threshhold and remove exons below it
+
+
+- Filter for missingness using trimal
+  💡 Do not trimm the alignmnets. The following script will just list sequences with a proportion of gaps per sequence higher than 0.5. (50 % gaps). Then you can remove the one from the list.
+
+```bash
+   #!/bin/bash
+
+# Set the path to your directory containing the .fna files
+input_directory="/home/kiedaisch/kiedaisch_DATA_REMOTE/baits_design/final_orthologs/orthologs_AH/gene_files/Exons/uninformatives_removed/"
+
+# Set the threshold value
+threshold=0.5
+
+# Iterate over all .fna files in the directory
+for file in "$input_directory"*.fna; do
+    # Extract the filename without extension
+    filename=$(basename -- "$file")
+    filename_no_ext="${filename%.fna}"
+
+    # Run the script for each file
+    /home/kiedaisch/apps/trimal/scripts/get_sequences_gaps_ratio.py -i "$file" --threshold "$threshold" > "$input_directory$filename_no_ext.trimal.txt"
+
+    # Print a message indicating completion
+    echo "Processed $filename"
+done
+```
+
 
 
 
