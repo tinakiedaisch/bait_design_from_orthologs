@@ -446,6 +446,21 @@ Mafft did not align the sequences in frame, so if you are experiencing many fram
 
 </blockquote>
 
+install MACSE_OMM here: [vranwez/default/omm_macse](https://cloud.sylabs.io/library/vranwez/default/omm_macse)
+
+```bash
+for i in $(ls *.fa)
+do
+echo omm_macse_v12.01.sif --in_seq_file $i --out_dir $(cut -d’.' -f1-3 <<<“$i”) --out_file_prefix $(cut -d’.' -f1-3 <<<“$i”) --replace_FS_by_gaps --alignAA_soft MAFFT --java_mem 50000m --save_details > $(cut -d’.' -f1-3 <<<“$i”).macse.sh
+done 
+```
+💡 if you want to run them in parallel use
+```bash
+parallel -j 100 bash ::: *.sh
+```
+
+
+
 
 
 
