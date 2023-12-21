@@ -298,11 +298,68 @@ done
 ```
 
 ---
-## 09. Splitting Exons
+## 10. Splitting Exons
 
+With this python script the exons wil be splitted according to the '@' signs in the alignments.
 
+```python
+def split_exons(fasta_file, outDIR):
+    if not os.path.isabs(fasta_file):
+        fasta_file = os.path.abspath(fasta_file)
 
+    if os.path.isabs(outDIR) == False:
+        outDIR = os.path.abspath(outDIR)
+    if outDIR[-1] != "/":
+        outDIR += "/"
+    if outDIR == ".":
+        outDIR = os.getcwd()
 
+    # Create the output directory if it doesn't exist
+    if not os.path.exists(outDIR):
+        os.makedirs(outDIR)
+
+    # Read the alignment
+    align = AlignIO.read(fasta_file, "fasta")
+
+    # Process the sequences
+    for record in align:
+        # Check if the sequence name starts with "AH000198"
+        if record.name.startswith("AH000198"):
+            exons = list(filter(None, re.split('@', str(record.seq))))
+            number_exons = len(exons)
+            introns = list(filter(None, re.split('a|c|t|g|-', str(record.seq))))
+            number_introns = len(introns)
+            number_modules = number_exons + number_introns
+            coordinates = [0, len(exons[0])]
+
+            if number_exons > 1:
+                for i in range(0, number_exons-1):
+                    coordinates += [coordinates[-1] + len(introns[i]), coordinates[-1] + len(introns[i]) + len(exons[i+1])]
+
+            for i in range(0, number_exons):
+                exon_align = align[:, coordinates[i*2]:coordinates[(i*2)+1]]
+                file_name = outDIR + record.name + ".E" + str(i+1) + ".fna"
+
+                # Write each exon to a separate file
+                with open(file_name, "w") as output_handle:
+                    AlignIO.write(exon_align, output_handle, "fasta")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python split_exons.py fasta_file outDIR")
+        sys.exit(1)
+
+    fasta_file, outDIR = sys.argv[1:]
+    split_exons(fasta_file, outDIR)
+```
+
+---
+## 11. Filtering exons
+
+After the previous step you will get ten thousends of exons but which are probably too short, too uninformative, or contain gappy sequences. Therfor it is good to filter this one out first.
+
+- Filter for length
+-Filter for informativness 
 
 
 
