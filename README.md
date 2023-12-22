@@ -52,7 +52,7 @@ micromamba create -n bedtools bedtools
 grep "exon" A_hyperchondriacus.gff3 >A_hyperchondriacus_exons.gff3
 ```
 ```bash
-#subatract
+#subtract
 bedtools subtract -a A_hyperchondriacus_genes.gff3 -b A_hyperchondriacus_exons.gff3 > A_hypochondriacus_introns.gff3
 sed 's/gene/intron/g' A_hypochondriacus_introns.gff3 >A_hypochondriacus_introns_forreal.gff3
 ```
