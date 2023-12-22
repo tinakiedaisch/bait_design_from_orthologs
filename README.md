@@ -1,5 +1,5 @@
 # bait_design
-Select target loci using orthologs
+Select loci for target capture using orthologs
 
 
 ## 01. Input Data
