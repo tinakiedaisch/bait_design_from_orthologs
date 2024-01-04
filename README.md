@@ -8,7 +8,7 @@ This workflow assums you already have pruned orthologs from your taxa of interes
 
 - **Orthologs .tre files**
 
-- **Homologs .tre file** (isoforms maseked)
+- **Homologs .tre files** (isoforms maseked)
 
 - **Reference genome**
    - Annotations: 'your_reference.gff3' & Genomic sequence: 'your_reference.fa'
