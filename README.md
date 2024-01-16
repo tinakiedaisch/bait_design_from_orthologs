@@ -1,5 +1,5 @@
 # bait_design
-Select loci for target capture using orthologs
+This repository contains scripts for selecting nuclear loci for target capture using orthologs.
 
 
 ## 01. Input Data
@@ -16,12 +16,12 @@ This workflow assums you already have pruned orthologs from your taxa of interes
 #### If you don't have orthologs go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) where you will get a detailed workflow for orthology inference from target enrichment data. 
 
 ---
- ## 02. Extract gene names of your referece from the orthologs
+ ## 02. Extract gene names of your reference from orthologs
 
-> 💡 We need the the gene names (of the reference) in our orthologs so that we can later align the intron masked reference to the orthologs to split the exons.
+> 💡 We need the the gene names (of the reference) in our orthologs to later align the intron masked reference to the orthologs to split the exons.
 
 
-This bash script gives you all gene number of your referenc in the output file 'output_gene_numbers.txt'
+This bash script gives you all gene numbers of your referenc in the output file 'output_gene_numbers.txt'
 
 ```bash
  #!/bin/bash
@@ -41,7 +41,7 @@ done
 ---
 ## 03. Mask the Introns in Your Reference Genome
 
-Follow the steps outlined in the [Evernote guide](https://www.evernote.com/shard/s383/client/snv?noteGuid=0a5af77a-8c6a-4ade-aab5-9a1044ac2817&noteKey=7d78636bd6b59130&sn=https%3A%2F%2Fwww.evernote.com%2Fshard%2Fs383%2Fsh%2F0a5af77a-8c6a-4ade-aab5-9a1044ac2817%2F7d78636bd6b59130&title=Prepping%2BZebrafinch%2BGenome%2Bfor%2BBlackbird%2Btranscript%2Balignments)
+Follow the steps outlined in the [Mask Introns](https://www.evernote.com/shard/s383/client/snv?noteGuid=0a5af77a-8c6a-4ade-aab5-9a1044ac2817&noteKey=7d78636bd6b59130&sn=https%3A%2F%2Fwww.evernote.com%2Fshard%2Fs383%2Fsh%2F0a5af77a-8c6a-4ade-aab5-9a1044ac2817%2F7d78636bd6b59130&title=Prepping%2BZebrafinch%2BGenome%2Bfor%2BBlackbird%2Btranscript%2Balignments)
 
 
 ```bash
@@ -114,7 +114,7 @@ awk '
 ' output_gene_numbers.txt intron_masked_genome.fa > extracted_genes.fasta
 ```
 
-💡 **Tip:** make sure that it is the same number of gene that you have extracted from the orthologs & check if they are the same
+💡 **Tip:** make sure that it is the same number of genes that you have extracted from the orthologs & check if they are the same
 
 ```bash
 comm -23 sorted_list_extracted_genes.txt modified_sorted_output_gene_nr.txt > unique_to_sorted_extracted_genes.txt
@@ -129,7 +129,7 @@ awk '/^>/{if (filename) close(filename); filename=sprintf("gene_%s.fa", substr($
 ```
 
 ---
-## 06. Write fastas from orthologous trees
+## 06. Write FASTAs from orthologous trees
 
 ```bash
 cat *.fa > all.fa
@@ -145,7 +145,7 @@ The Python script can be found [here](https://bitbucket.org/dfmoralesb/phylogeno
 
 💡 make sure that all of them include your reference
 
-Concatinate all FASTAS
+Then concatinate all FASTAs
 
 ```bash
 cat *.fa > all.fa
@@ -163,7 +163,7 @@ for file in *.fasta; do
     mafft --auto "$file" > "${file%.fasta}.aligned.fasta"
 done
 ```
-Then add you intron masked reference sequence to the alignmnet with the fuction mafft --add
+Then add you intron masked reference sequence to the alignmnet with the function mafft --add
 
 ```bash
 #!/bin/bash
@@ -211,9 +211,9 @@ for filename in os.listdir(input_directory):
 
 ---
 ## 09. Preparations for splitting Exons
-### 09.1 converst FASTA to PHYLIP
+### 09.1 convert FASTA to PHYLIP
 
-💡we need the phylip format to extract colums in the next step
+💡We need the phylip format to extract colums in the next step
 
 ```bash
 #!/bin/bash
@@ -224,7 +224,7 @@ done
 ```
 ### 09.2 mark introns with @
 
-with this python script all clolums that have 'N' in the reference and gaps '-' in the other taxa will be replaced with '@'. This is done to make sure to split the complete exon in cases where the introns of the reference don't align with the other taxa.
+With this python script all clolums that have 'N' in the reference and gaps '-' in the other taxa will be replaced with '@'. This is done to split the complete exon in cases where the introns of the reference don't align with the other taxa.
 
 ```python
 import sys
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
 ### 09.3 Convert PHYLIP back to FASTA
 
-for downstream analysis we need again the FASTA format
+For downstream analysis we need again the FASTA format
 
 ```bash
 #!/bin/bash
@@ -302,66 +302,118 @@ done
 ---
 ## 10. Splitting Exons
 
-With this python script the exons wil be splitted according to the '@' signs in the alignments.
+With this python script the exons will be splitted according to the '@' signs in the alignments.
 
 ```python
-def split_exons(fasta_file, outDIR):
-    if not os.path.isabs(fasta_file):
-        fasta_file = os.path.abspath(fasta_file)
+import os, sys, glob, re
+from Bio import Phylo, SeqIO, AlignIO
 
-    if os.path.isabs(outDIR) == False:
-        outDIR = os.path.abspath(outDIR)
-    if outDIR[-1] != "/":
-        outDIR += "/"
-    if outDIR == ".":
-        outDIR = os.getcwd()
+def split_exons(fasta_DIR, fasta_file_ending, outDIR, reference):
+    
+    if os.path.isabs(fasta_DIR) == False: fasta_DIR = os.path.abspath(fasta_DIR)
+    if fasta_DIR[-1] != "/": fasta_DIR += "/"
+    
+    if os.path.isabs(outDIR) == False: outDIR = os.path.abspath(outDIR)
+    if outDIR[-1] != "/": outDIR += "/"
+    if outDIR == ".": outDIR = os.getcwd()
+    
+    ref_pattern = '^' + reference
+    print ref_pattern
+    for file in os.listdir(fasta_DIR):
+        if file.endswith(fasta_file_ending):
+            align = AlignIO.read(fasta_DIR+file, "fasta")
+            print (file)
+            exon_name = file.split( "." )
+            #print (exon_name[0])
+            
+            for record in align:
+                if re.match(ref_pattern, str(record.name)):
+                    #print record
+                    exons = list(filter(None, re.split('@', str(record.seq))))
+                    number_exons = len(exons) 
+                    #print number_exons
+                    introns = list(filter(None, re.split('a|c|t|g|-|n', str(record.seq))))
+                    number_introns = len(introns)
+                    number_modules = number_exons + number_introns
+                    coordinates = [0,len(exons[0])]
+                    if number_exons > 1:
+                        for i in range(0,number_exons-1):
+                            coordinates += [coordinates[-1]+len(introns[i]), coordinates[-1]+len(introns[i])+len(exons[i+1])]      
+                    for i in range(0, number_exons):
+                        exon_align = align[:,coordinates[i*2]:coordinates[(i*2)+1]]
+                        file_name = outDIR + exon_name[0] + ".E" + str(i+1) + ".fna"
+                        output_handle = open(file_name, "w")
+                        AlignIO.write(exon_align, output_handle, "fasta")
+                        output_handle.close()
+            
 
-    # Create the output directory if it doesn't exist
-    if not os.path.exists(outDIR):
-        os.makedirs(outDIR)
 
-    # Read the alignment
-    align = AlignIO.read(fasta_file, "fasta")
-
-    # Process the sequences
-    for record in align:
-        # Check if the sequence name starts with "AH000198"
-        if record.name.startswith("AH000198"):
-            exons = list(filter(None, re.split('@', str(record.seq))))
-            number_exons = len(exons)
-            introns = list(filter(None, re.split('a|c|t|g|-', str(record.seq))))
-            number_introns = len(introns)
-            number_modules = number_exons + number_introns
-            coordinates = [0, len(exons[0])]
-
-            if number_exons > 1:
-                for i in range(0, number_exons-1):
-                    coordinates += [coordinates[-1] + len(introns[i]), coordinates[-1] + len(introns[i]) + len(exons[i+1])]
-
-            for i in range(0, number_exons):
-                exon_align = align[:, coordinates[i*2]:coordinates[(i*2)+1]]
-                file_name = outDIR + record.name + ".E" + str(i+1) + ".fna"
-
-                # Write each exon to a separate file
-                with open(file_name, "w") as output_handle:
-                    AlignIO.write(exon_align, output_handle, "fasta")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python split_exons.py fasta_file outDIR")
-        sys.exit(1)
+	if len(sys.argv) != 5:
+		print ("python split_exons.py fasta_DIR, fasta_file_ending, outDIR, reference")
+		sys.exit(0)
 
-    fasta_file, outDIR = sys.argv[1:]
-    split_exons(fasta_file, outDIR)
+	fasta_DIR, fasta_file_ending, outDIR, reference  = sys.argv[1:]
+	split_exons(fasta_DIR, fasta_file_ending, outDIR, reference)
 ```
 
 ---
 ## 11. Filtering exons
 
-After the previous step you will get ten thousends of exons but which are probably too short, too uninformative, or contain gappy sequences. Therfor it is good to filter this one out first.
+After completing the preceding step, you'll obtain thousands of exons, but many may be too short, lack informativeness, or contain gaps. Consequently, it is advisable to initially filter out such exons.
 
-- Filter for length
-- Filter for informativness (parsimony informative sites) with phykit [PhyKIT GitHub Repository](https://github.com/JLSteenwyk/PhyKIT)
+1. Filter for length
+
+2. Filter for missingness using trimal
+3. 
+  💡 Do not trimm the alignmnets. The following script will just list sequences with a proportion of gaps per sequence higher than 0.5. (50 % gaps). Then you can remove the one from the list.
+
+```bash
+   #!/bin/bash
+
+# Set the path to your directory containing the .fna files
+input_directory="/home/kiedaisch/kiedaisch_DATA_REMOTE/baits_design/final_orthologs/orthologs_AH/gene_files/Exons/uninformatives_removed/"
+
+# Set the threshold value
+threshold=0.5
+
+# Iterate over all .fna files in the directory
+for file in "$input_directory"*.fna; do
+    # Extract the filename without extension
+    filename=$(basename -- "$file")
+    filename_no_ext="${filename%.fna}"
+
+    # Run the script for each file
+    /home/kiedaisch/apps/trimal/scripts/get_sequences_gaps_ratio.py -i "$file" --threshold "$threshold" > "$input_directory$filename_no_ext.trimal.txt"
+
+    # Print a message indicating completion
+    echo "Processed $filename"
+done
+```
+
+Remove sequences on the list with the following bash script:
+
+```bash
+for fasta_file in *.fna; do
+    trim_file="${fasta_file%.fna}.trimal.txt"
+    output_file="modified_${fasta_file}"
+
+    # Check if the .trimal.txt file is not empty
+    if [ -s "$trim_file" ]; then
+        awk 'NR==FNR {sequencesToRemove[$2]; next} /^>/ {header=$0; sub(/^>/, "", header); if (!(header in sequencesToRemove)) print $0; next} {if (!(header in sequencesToRemove)) print}' "$trim_file" "$fasta_file" > "$output_file"
+        echo "Processed $fasta_file"
+    else
+        # If .trimal.txt is empty, just copy the original .fna file
+        cp "$fasta_file" "$output_file"
+        echo "No modifications for $fasta_file"
+    fi
+done
+```
+
+---
+
+3. Filter for informativness (parsimony informative sites) with phykit [PhyKIT GitHub Repository](https://github.com/JLSteenwyk/PhyKIT)
 
 ```bash
 #!/bin/bash
@@ -394,57 +446,11 @@ col3: percentage of parsimony informative sites
 --> with this you can select a threshhold and remove exons below it
 
 
-- Filter for missingness using trimal
-  💡 Do not trimm the alignmnets. The following script will just list sequences with a proportion of gaps per sequence higher than 0.5. (50 % gaps). Then you can remove the one from the list.
-
-```bash
-   #!/bin/bash
-
-# Set the path to your directory containing the .fna files
-input_directory="/home/kiedaisch/kiedaisch_DATA_REMOTE/baits_design/final_orthologs/orthologs_AH/gene_files/Exons/uninformatives_removed/"
-
-# Set the threshold value
-threshold=0.5
-
-# Iterate over all .fna files in the directory
-for file in "$input_directory"*.fna; do
-    # Extract the filename without extension
-    filename=$(basename -- "$file")
-    filename_no_ext="${filename%.fna}"
-
-    # Run the script for each file
-    /home/kiedaisch/apps/trimal/scripts/get_sequences_gaps_ratio.py -i "$file" --threshold "$threshold" > "$input_directory$filename_no_ext.trimal.txt"
-
-    # Print a message indicating completion
-    echo "Processed $filename"
-done
-```
-
-remove sequences on the list with the following bash script:
-
-```bash
-for fasta_file in *.fna; do
-    trim_file="${fasta_file%.fna}.trimal.txt"
-    output_file="modified_${fasta_file}"
-
-    # Check if the .trimal.txt file is not empty
-    if [ -s "$trim_file" ]; then
-        awk 'NR==FNR {sequencesToRemove[$2]; next} /^>/ {header=$0; sub(/^>/, "", header); if (!(header in sequencesToRemove)) print $0; next} {if (!(header in sequencesToRemove)) print}' "$trim_file" "$fasta_file" > "$output_file"
-        echo "Processed $fasta_file"
-    else
-        # If .trimal.txt is empty, just copy the original .fna file
-        cp "$fasta_file" "$output_file"
-        echo "No modifications for $fasta_file"
-    fi
-done
-```
-
----
 ## 12. Align Exons again with MACSE_OMM
 
 <blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
 
-Mafft did not align the sequences in frame, so if you are experiencing many frameshifts or badly aligned sequences, use `macse_omm`. This can be checked in Geneious Prime using the Translation option. The MACSE_OMM pipeline will align the sequences in respect to their AA translation, remove non-homologous sequence fragments, and trim extremities of the alignment.
+Mafft did not align the sequences in frame, so if you are experiencing many frameshifts or badly aligned sequences, use `macse_omm`. The translation can be checked in Geneious Prime by using the Translation option. The MACSE_OMM pipeline will align the sequences in respect to their AA translation, remove non-homologous sequence fragments, and trim extremities of the alignment.
 
 </blockquote>
 
@@ -467,7 +473,7 @@ parallel -j 100 bash ::: *.sh
 - Filter again for missingness using trimal (see 11.)
 
 ### Now load your exons in Geneious Prime for the filtering of
-- Min. length (e.g. 700 bp)
+- Min. length (e.g. 800 bp)
 - Min. sequences (e.g. 10)
 - Min. pairwise identity (e.g. 75%)
 
@@ -478,7 +484,7 @@ parallel -j 100 bash ::: *.sh
 
 <blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
    
-You usually aim to design baits for low-copy loci. I our plant family we had several whole genome dublication events which is why we cannot find many single copy loci. However loci belonging to large genefamilies should be discarded. Therefore we counted the occurence of our taxa in the homologs (isoform masked) and discard loci with a higher count than six.  
+You usually aim to design baits for low-copy loci. In the Amaranthaceae family we found several whole genome dublication events which is why we cannot find many single copy loci. However loci belonging to large genefamilies should be discarded. Therefore we counted the occurence of our taxa in the homolog (isoform masked) trees and discard loci with a higher count than six.  
   
 </blockquote>
 
@@ -493,6 +499,7 @@ done
 ```
 
   ---
+  
 ## 15. Select the best two sequences for bait design
 
 The following python script will select one species from each of the two subfamilies which have the least gaps and copy them in a new file.
