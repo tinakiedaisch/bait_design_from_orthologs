@@ -6,11 +6,11 @@ This repository contains scripts for selecting nuclear loci for target capture u
 
 This workflow assums you already have pruned orthologs from your taxa of interest.
 
-- **Orthologs .tre files**
+- Orthologs .tre files**
 
-- **Homologs .tre files** (isoforms maseked)
+- Homologs .tre files** (isoforms maseked)
 
-- **Reference genome**
+- Reference genome**
    - Annotations: 'your_reference.gff3' & Genomic sequence: 'your_reference.fa'
  
 #### If you don't have orthologs go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) where you will get a detailed workflow for orthology inference from target enrichment data. 
@@ -366,7 +366,7 @@ After completing the preceding step, you'll obtain thousands of exons, but many 
 1. Filter for length
 
 2. Filter for missingness using trimal
-3. 
+    
   💡 Do not trimm the alignmnets. The following script will just list sequences with a proportion of gaps per sequence higher than 0.5. (50 % gaps). Then you can remove the one from the list.
 
 ```bash
