@@ -13,7 +13,7 @@ This workflow assums you already have pruned orthologs from your taxa of interes
 - **Reference genome**
    - Annotations: 'your_reference.gff3' & Genomic sequence: 'your_reference.fa'
  
-### If you don't have orthologs go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) where you will get a detailed workflow for orthology inference from target enrichment data. 
+#### If you don't have orthologs go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) where you will get a detailed workflow for orthology inference from target enrichment data. 
 
 ---
  ## 02. Extract gene names of your referece from the orthologs
