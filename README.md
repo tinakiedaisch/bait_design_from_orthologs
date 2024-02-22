@@ -252,7 +252,7 @@ def process_file(input_filename):
     # Identify columns to replace
     columns_to_replace = set()
     for col in range(first_sequence_length):
-        if sequence_lines[0][col] == '-' and (sequence_lines[-1][col].lower() == 'n' or sequence_lines[-1][col].lower() == 'n'):
+        if sequence_lines[0][col] == '-' and (sequence_lines[-1][col].lower() == 'n' or sequence_lines[-1][col].lower() == 'N'):
             # Check if all intermediate rows have "-"
             intermediate_chars = [line[col] for line in sequence_lines[1:-1]]
             if all(char == '-' for char in intermediate_chars):
@@ -302,7 +302,7 @@ done
 ---
 ## 10. Splitting Exons
 
-With this python script the exons will be splitted according to the '@' signs in the alignments.
+With this python script the exons will be splitted according to the '@' signs in the alignments. Therefor the mask sequence must be the last sequences in the alignment.
 
 ```python
 import os, sys, glob, re
@@ -332,7 +332,7 @@ def split_exons(fasta_DIR, fasta_file_ending, outDIR, reference):
                     exons = list(filter(None, re.split('@', str(record.seq))))
                     number_exons = len(exons) 
                     #print number_exons
-                    introns = list(filter(None, re.split('a|c|t|g|-|n', str(record.seq))))
+                    introns = list(filter(None, re.split('a|c|t|g|-|n|A|C|T|G|N', str(record.seq))))
                     number_introns = len(introns)
                     number_modules = number_exons + number_introns
                     coordinates = [0,len(exons[0])]
