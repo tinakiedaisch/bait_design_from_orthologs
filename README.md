@@ -4,7 +4,7 @@ This repository contains scripts for selecting nuclear loci for target capture u
 
 ## 01. Input Data
 
-This workflow assums you already have pruned orthologs from your taxa of interest.
+This workflow assumes that you have already pruned orthologs from your taxa of interest.
 
 - Orthologs .tre files**
 
@@ -13,15 +13,15 @@ This workflow assums you already have pruned orthologs from your taxa of interes
 - Reference genome**
    - Annotations: 'your_reference.gff3' & Genomic sequence: 'your_reference.fa'
  
-#### If you don't have orthologs go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) where you will get a detailed workflow for orthology inference from target enrichment data. 
+#### If you don't have orthologs, go to [Target enrichment orthology](https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/) for a detailed workflow for orthology inference from target enrichment data. 
 
 ---
  ## 02. Extract gene names of your reference from orthologs
 
-> 💡 We need the the gene names (of the reference) in our orthologs to later align the intron masked reference to the orthologs to split the exons.
+> 💡 We need the the gene names (of the reference) in our orthologs to later align the intron-masked reference to the orthologs to split the exons.
 
 
-This bash script gives you all gene numbers of your referenc in the output file 'output_gene_numbers.txt'
+This bash script will give you all the gene numbers of your reference in the output file 'output_gene_numbers.txt'.
 
 ```bash
  #!/bin/bash
@@ -39,7 +39,7 @@ done
 ```
 
 ---
-## 03. Mask the Introns in Your Reference Genome
+## 03. Mask the introns in your reference genome
 
 Follow the steps outlined in the [Mask Introns](https://www.evernote.com/shard/s383/client/snv?noteGuid=0a5af77a-8c6a-4ade-aab5-9a1044ac2817&noteKey=7d78636bd6b59130&sn=https%3A%2F%2Fwww.evernote.com%2Fshard%2Fs383%2Fsh%2F0a5af77a-8c6a-4ade-aab5-9a1044ac2817%2F7d78636bd6b59130&title=Prepping%2BZebrafinch%2BGenome%2Bfor%2BBlackbird%2Btranscript%2Balignments)
 
@@ -72,7 +72,7 @@ samtools faidx A_hypochondriacus_introns_masked.fa
 bedtools getfasta -fi A_hypochondriacus_introns_masked.fa -bed A_hyperchondriacus_genes.gff3 -fo A_hypochondriacus_genes.fa -s
 ```
 ---
-## 04. Pull Genes from Intron-Masked Genome
+## 04. Pull genes from intron-masked genome
 
 ```bash
 #!/bin/bash
@@ -114,7 +114,7 @@ awk '
 ' output_gene_numbers.txt intron_masked_genome.fa > extracted_genes.fasta
 ```
 
-💡 **Tip:** make sure that it is the same number of genes that you have extracted from the orthologs & check if they are the same
+💡 **Tip:** Make sure you have the same number of genes as you extracted from the orthologs & check that they are the same.
 
 ```bash
 comm -23 sorted_list_extracted_genes.txt modified_sorted_output_gene_nr.txt > unique_to_sorted_extracted_genes.txt
@@ -135,7 +135,7 @@ awk '/^>/{if (filename) close(filename); filename=sprintf("gene_%s.fa", substr($
 cat *.fa > all.fa
 ```
 
-To generate individual FASTA files for each tree using the Python script "write_fasta_from_trees," use the following command:
+To generate individual FASTA files for each tree using the Python script "write_fasta_from_trees", use the following command:
 
 ```bash
 python2 ~/write_fasta_from_trees all.fa final_orthologs/
@@ -143,7 +143,7 @@ python2 ~/write_fasta_from_trees all.fa final_orthologs/
 
 The Python script can be found [here](https://bitbucket.org/dfmoralesb/phylogenomic_dataset_construction/src/master/write_fasta_files_from_trees.py).
 
-💡 make sure that all of them include your reference
+💡 Make sure that all of them include your reference
 
 Then concatinate all FASTAs
 
@@ -154,7 +154,7 @@ cat *.fa > all.fa
 ---
 ## 07. Aligning fastas and add the intron masked reference to the alignmen
 
-For a fast and simple multiple sequence alignment you can use MAFFT
+For quick and easy multiple sequence alignment, you can use MAFFT.
 
 ```bash
 #!/bin/bash
@@ -163,7 +163,7 @@ for file in *.fasta; do
     mafft --auto "$file" > "${file%.fasta}.aligned.fasta"
 done
 ```
-Then add you intron masked reference sequence to the alignmnet with the function mafft --add
+Then add your intron-masked reference sequence to the alignment using the mafft --add function.
 
 ```bash
 #!/bin/bash
@@ -176,7 +176,7 @@ done
 ---
 ## 08. Shorten sequence name to 8 characters
 
-💡 Since we have to convert the fasta in phylip later, we have to unifiy and shorten the sequence name
+💡 Since we need to convert the fasta to phylip later, we need to unify and shorten the sequence names. Note that this script was generated using ChatGPT.
 
 ```python
 from Bio import SeqIO
@@ -224,7 +224,7 @@ done
 ```
 ### 09.2 mark introns with @
 
-With this python script all clolums that have 'N' in the reference and gaps '-' in the other taxa will be replaced with '@'. This is done to split the complete exon in cases where the introns of the reference don't align with the other taxa.
+This Python script replaces all clolums that have 'N' in the reference and gaps '-' in the other taxa with '@'. This is done to split the complete exon in cases where the introns of the reference don't match the other taxa. Note that this script was generated using ChatGPT.
 
 ```python
 import sys
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
 ### 09.3 Convert PHYLIP back to FASTA
 
-For downstream analysis we need again the FASTA format
+For downstream analysis, we need the FASTA format again.
 
 ```bash
 #!/bin/bash
@@ -302,7 +302,7 @@ done
 ---
 ## 10. Splitting Exons
 
-With this python script the exons will be splitted according to the '@' signs in the alignments. Therefor the mask sequence must be the last sequences in the alignment.
+This Python script will split the exons according to the '@' signs in the alignments. The mask sequence must be the last sequence in the alignment. Note that this script was written by Diego Morales-Briones.
 
 ```python
 import os, sys, glob, re
@@ -361,13 +361,13 @@ if __name__ == "__main__":
 ---
 ## 11. Filtering exons
 
-After completing the preceding step, you'll obtain thousands of exons, but many may be too short, lack informativeness, or contain gaps. Consequently, it is advisable to initially filter out such exons.
+After the previous step, you'll have thousands of exons, but many of them may be too short, not informative or contain gaps. It is therefore advisable to filter out such exons first.
 
 1. Filter for length
 
 2. Filter for missingness using trimal
     
-  💡 Do not trimm the alignmnets. The following script will just list sequences with a proportion of gaps per sequence higher than 0.5. (50 % gaps). Then you can remove the one from the list.
+  💡 Do not trim the alignments. The following script will only list sequences with a proportion of gaps per sequence higher than 0.5. (50% gaps). You can then remove them from the list.
 
 ```bash
    #!/bin/bash
@@ -392,7 +392,7 @@ for file in "$input_directory"*.fna; do
 done
 ```
 
-Remove sequences on the list with the following bash script:
+Remove sequences from the list using the following bash script:
 
 ```bash
 for fasta_file in *.fna; do
@@ -443,7 +443,7 @@ col1: number of parsimony informative sites
 col2: total number of sites 
 col3: percentage of parsimony informative sites
 
---> with this you can select a threshhold and remove exons below it
+--> This allows you to select a threshold and remove exons below it.
 
 
 ## 12. Align Exons again with MACSE_OMM
@@ -470,21 +470,21 @@ parallel -j 100 bash ::: *.sh
 ---
 ## 13. Final filtering and selection of loci
 
-- Filter again for missingness using trimal (see 11.)
+- Filter for missingness again using trimal  (see 11.)
 
 ### Now load your exons in Geneious Prime for the filtering of
 - Min. length (e.g. 800 bp)
 - Min. sequences (e.g. 10)
 - Min. pairwise identity (e.g. 75%)
 
-  --> Then review your exons maually to make sure they are well aligned
+  --> Then check your exons manually to make sure they are well aligned.
 
   ---
 ## 14. Identify large gene families
 
 <blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin-left: 0;">
    
-You usually aim to design baits for low-copy loci. In the Amaranthaceae family we found several whole genome dublication events which is why we cannot find many single copy loci. However loci belonging to large genefamilies should be discarded. Therefore we counted the occurence of our taxa in the homolog (isoform masked) trees and discard loci with a higher count than six.  
+Usually you want to design baits for low copy loci. In the Amaranthaceae family we have found several whole genome duplication events, so we cannot find many single copy loci. However, loci belonging to large gene families should be discarded. Therefore, we counted the occurrence of our taxa in the homologous (isoform masked) trees and discarded loci with a count higher than six.  
   
 </blockquote>
 
@@ -502,7 +502,7 @@ done
   
 ## 15. Select the best two sequences for bait design
 
-The following python script will select one species from each of the two subfamilies which have the least gaps and copy them in a new file.
+The following Python script selects one species from each of the two subfamilies with the fewest gaps and copies it into a new file. Note that this script was generated using ChatGPT.
 
 ```python
 from Bio import SeqIO
