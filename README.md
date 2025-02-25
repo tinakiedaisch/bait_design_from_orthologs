@@ -152,7 +152,7 @@ cat *.fa > all.fa
 ```
 
 ---
-## 07. Aligning fastas and add the intron masked reference to the alignmen
+## 07. Aligning fastas and add the intron masked reference to the alignment
 
 For quick and easy multiple sequence alignment, you can use MAFFT.
 
